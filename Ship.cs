@@ -63,13 +63,19 @@ public class Ship : MonoBehaviour {
 
 	// Cameras
 
-	 public Camera maincamera, downcamera, thirdcam, pilotcam;
+	public Camera maincamera, topdowncamera, pilotcam;
+	//public Camera gatecam;
 
   	private Camera[] cameras;
 
     private int currentCameraIndex = 0;
 
     private Camera currentCamera;
+
+
+    // Gates
+    public bool passgate1 = false;
+	public bool passgate2 = false;
 
 
 	//////////////////////////////////
@@ -85,9 +91,10 @@ public class Ship : MonoBehaviour {
     {
         rigidbody.mass = mass;
 
-        cameras = new Camera[] {downcamera, maincamera, thirdcam, pilotcam};
+        // cameras = new Camera[] {pilotcam,  maincamera, topdowncamera, gatecam};
+		cameras = new Camera[] {pilotcam,  maincamera, topdowncamera};	
 
-        currentCamera = thirdcam; // Cant set initial camera?
+        currentCamera = maincamera; // Cant set initial camera?
 
         ChangeView();
     }
@@ -166,36 +173,30 @@ public class Ship : MonoBehaviour {
 		if(setCameraOn)
 		{
 			//Camera Position : Type A
-			//Camera.mainCamera.transform.position = new Vector3(rigidbody.position.x - 20f, rigidbody.position.y + 10 ,rigidbody.position.z);
-			//Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(22,rotation.y + 90, 0));
+			//  Camera.mainCamera.transform.position = new Vector3(rigidbody.position.x - 20f, rigidbody.position.y + 10 ,rigidbody.position.z);
+			//  Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(22,rotation.y + 90, 0));
 			
 			// Camera Position : Type B - Chase Cam v1.0!
 			
 			maincamera.transform.position = GameObject.Find("camera-pos").transform.position;
 			
-			// v0.1 - First Working Version 1.1 Set Position
-			//Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(22 ,rotation.y + 90, 0));
+			//  v0.1 - First Working Version 1.1 Set Position
+			//  Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(22 ,rotation.y + 90, 0));
 			
 			// v0.2 - Follow object set behind as child for camera position
 			maincamera.transform.rotation = Quaternion.Euler(new Vector3(GameObject.Find("camera-pos").transform.rotation.x, rotation.y + 90, transform.rotation.z * rotation.z));
 			
-			// v0.3 - Fly Cam
-			//Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(GameObject.Find("camera-pos-2").transform.rotation.x+90, rotation.y + 90, transform.rotation.z));
-			
-
 			GameObject.Find("camera-pos").renderer.enabled = false;
-			//GameObject.Find("camera-pos-2").renderer.enabled = false;
-			//setCameraOn = false;
-
-			// Top Down Cam
+			//  GameObject.Find("camera-pos-2").renderer.enabled = false;
+			//  setCameraOn = false;
 
 			maincamera.transform.position = GameObject.Find("camera-pos").transform.position;
 
 			// Gate-1 Camera
-			downcamera.transform.LookAt(GameObject.Find("camera-pos").transform.position);
+			// gatecam.transform.LookAt(GameObject.Find("camera-pos").transform.position);
 
 			// Top Down View
-			thirdcam.transform.position = new Vector3(GameObject.Find("camera-pos").transform.position.x,GameObject.Find("camera-pos").transform.position.y + 400, GameObject.Find("camera-pos").transform.position.z);
+			topdowncamera.transform.position = new Vector3(GameObject.Find("camera-pos").transform.position.x,GameObject.Find("camera-pos").transform.position.y + 400, GameObject.Find("camera-pos").transform.position.z);
 			
 
 		}	
@@ -298,7 +299,12 @@ public class Ship : MonoBehaviour {
 
 		// Dist
 		var go = GameObject.Find("gate1");
-		distance1 = Vector3.Distance(go.transform.position, transform.position); 
+		distance1 = Vector3.Distance(go.transform.position, transform.position);
+
+		if(distance1 < 39)
+		{
+			passgate1 = true;
+		}
 
   		if(Input.GetKeyDown("e"))
   		{
@@ -402,6 +408,10 @@ public class Ship : MonoBehaviour {
 		
 		//Cameras
 		GUI.Button(new Rect(1355, 80, 180, 20), "[cam] " + currentCameraIndex.ToString());
+
+		GUI.Button(new Rect(1355, 100, 180, 20), "[pg1] " + passgate1.ToString());
+
+		GUI.Button(new Rect(1355, 120, 180, 20), "[pg2] " + passgate2.ToString());
 
 		Debug.DrawRay (forwardHit.point,new Vector3(111,111,111));
 		
