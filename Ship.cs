@@ -63,9 +63,7 @@ public class Ship : MonoBehaviour {
 
 	// Cameras
 
-	 public Camera maincamera;
-
-    public Camera downcamera;
+	 public Camera maincamera, downcamera, thirdcam, pilotcam;
 
   	private Camera[] cameras;
 
@@ -87,9 +85,9 @@ public class Ship : MonoBehaviour {
     {
         rigidbody.mass = mass;
 
-        cameras = new Camera[] { maincamera, downcamera };
+        cameras = new Camera[] {downcamera, maincamera, thirdcam, pilotcam};
 
-        currentCamera = maincamera;
+        currentCamera = thirdcam; // Cant set initial camera?
 
         ChangeView();
     }
@@ -129,27 +127,6 @@ public class Ship : MonoBehaviour {
 		// Z-Rotation 
 		rotation.z = 0F;
         
-		// Attempt to rotate the craft based on angle toward terrain
-		
-		//if(Physics.Raycast(transform.position + transform.forward, Vector3.down, out hit))
-		//{	
-		//	rotation.z += 1F;
-		//	goingUp = true;
-			
-		//	if(Physics.Raycast(transform.position - transform.forward, Vector3.down, out hit))
-		//	{
-		//		bHit = hit.point;
-		//		goingUp = false;
-				//transform.forward = fHit - bHit; 
-				//rotation.z= transform.position.z +( fHit - bHit) ; 
-		//		rotation.z -= 1F;		
-		//	}
-		//}
-		//else
-		//{
-		//	goingUp = false;
-		//}
-		
 		// *************
 		// T E R R A I N 
 		// *************
@@ -194,13 +171,13 @@ public class Ship : MonoBehaviour {
 			
 			// Camera Position : Type B - Chase Cam v1.0!
 			
-			Camera.mainCamera.transform.position = GameObject.Find("camera-pos").transform.position;
+			maincamera.transform.position = GameObject.Find("camera-pos").transform.position;
 			
 			// v0.1 - First Working Version 1.1 Set Position
 			//Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(22 ,rotation.y + 90, 0));
 			
 			// v0.2 - Follow object set behind as child for camera position
-			Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(GameObject.Find("camera-pos").transform.rotation.x, rotation.y + 90, transform.rotation.z * rotation.z));
+			maincamera.transform.rotation = Quaternion.Euler(new Vector3(GameObject.Find("camera-pos").transform.rotation.x, rotation.y + 90, transform.rotation.z * rotation.z));
 			
 			// v0.3 - Fly Cam
 			//Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(GameObject.Find("camera-pos-2").transform.rotation.x+90, rotation.y + 90, transform.rotation.z));
@@ -212,14 +189,16 @@ public class Ship : MonoBehaviour {
 
 			// Top Down Cam
 
-			Camera.mainCamera.transform.position = GameObject.Find("camera-pos").transform.position;
-		}	
-		
+			maincamera.transform.position = GameObject.Find("camera-pos").transform.position;
+
+			// Gate-1 Camera
+			downcamera.transform.LookAt(GameObject.Find("camera-pos").transform.position);
+
+			// Top Down View
+			thirdcam.transform.position = new Vector3(GameObject.Find("camera-pos").transform.position.x,GameObject.Find("camera-pos").transform.position.y + 400, GameObject.Find("camera-pos").transform.position.z);
 			
 
-		
-		// transform.position.y = Terrain.activeTerrain.SampleHeight(transform.position);
-		//audio.Play();
+		}	
     }
 	
 	void LateUpdate() {
@@ -279,7 +258,7 @@ public class Ship : MonoBehaviour {
  
         //  S O U N D 
 
-  		if (Input.GetKey("up"))
+  		if (Input.GetKey("up") || Input.GetKey("w"))
   		{
   			isAccellerating = true;
  			audio.volume = 1;
@@ -321,13 +300,14 @@ public class Ship : MonoBehaviour {
 		var go = GameObject.Find("gate1");
 		distance1 = Vector3.Distance(go.transform.position, transform.position); 
 
-  		if(Input.GetKeyDown("s"))
+  		if(Input.GetKeyDown("e"))
   		{
   			currentCameraIndex++;
 
-            //if (currentCameraIndex > cameras.length())
-
-            //    currentCameraIndex = 0;
+            if (currentCameraIndex > cameras.Length - 1)
+            {
+            	 currentCameraIndex = 0;
+            }
 
             ChangeView();
 
@@ -357,7 +337,7 @@ public class Ship : MonoBehaviour {
 		//	+ "[t] " +turn.ToString("000.0");// + Camera.mainCamera.transform.rotation.y.ToString());
 		
 		GUI.Button(new Rect(10, 35, 180, 20), "[cr] " 
-			+ Camera.mainCamera.transform.rotation.ToString());
+			+ maincamera.transform.rotation.ToString());
 		
 				GUI.Button(new Rect(10,55, 180, 20), "campos:" 
 			+ GameObject.Find("camera-pos").transform.rotation);
@@ -371,7 +351,7 @@ public class Ship : MonoBehaviour {
 		
 		
 			GUI.Button(new Rect(10, 135, 180, 20), "[cp] " 
-			+ Camera.mainCamera.transform.position.ToString());
+			+ maincamera.transform.position.ToString());
 		
 		// turn speed
 		turnSpeed = GUI.HorizontalSlider (new Rect (25, 295, 100, 30), turnSpeed, 20000f, 40000.0f);
@@ -418,10 +398,12 @@ public class Ship : MonoBehaviour {
 		GUI.Button(new Rect(1355, 40, 180, 20), "[->] " + isAccellerating.ToString() + "/" + audio.volume.ToString());
 		
 		// Distance
-		GUI.Button(new Rect(1155, 60, 180, 20), "[1] " + distance1.ToString());
+		GUI.Button(new Rect(1155, 60, 180, 20), "[d1] " + distance1.ToString());
 		
 		//Cameras
-		GUI.Button(new Rect(1355, 80, 180, 20), "[1] " + currentCameraIndex.ToString());
+		GUI.Button(new Rect(1355, 80, 180, 20), "[cam] " + currentCameraIndex.ToString());
+
+		Debug.DrawRay (forwardHit.point,new Vector3(111,111,111));
 		
     }
 }
