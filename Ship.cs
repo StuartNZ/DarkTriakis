@@ -94,7 +94,11 @@ public class Ship : MonoBehaviour {
         // cameras = new Camera[] {pilotcam,  maincamera, topdowncamera, gatecam};
 		cameras = new Camera[] {pilotcam,  maincamera, topdowncamera};	
 
-        currentCamera = maincamera; // Cant set initial camera?
+        currentCamera = pilotcam; // Cant set initial camera?
+
+		pilotcam.farClipPlane = 4200;
+		maincamera.farClipPlane = 4200;
+		topdowncamera.farClipPlane = 4200;
 
         ChangeView();
     }
