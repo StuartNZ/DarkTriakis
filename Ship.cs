@@ -64,7 +64,7 @@ public class Ship : MonoBehaviour {
 	// Cameras
 
 	public Camera maincamera, topdowncamera, pilotcam;
-	//public Camera gatecam;
+	public Camera gatecam;
 
   	private Camera[] cameras;
 
@@ -94,13 +94,16 @@ public class Ship : MonoBehaviour {
         // cameras = new Camera[] {pilotcam,  maincamera, topdowncamera, gatecam};
 		cameras = new Camera[] {pilotcam,  maincamera, topdowncamera};	
 
-        currentCamera = pilotcam; // Cant set initial camera?
+        currentCamera = pilotcam; 
 
 		pilotcam.farClipPlane = 4200;
 		maincamera.farClipPlane = 4200;
 		topdowncamera.farClipPlane = 4200;
 
-        ChangeView();
+        ChangeView(0);
+
+
+
     }
  
     void FixedUpdate()
@@ -197,7 +200,9 @@ public class Ship : MonoBehaviour {
 			maincamera.transform.position = GameObject.Find("camera-pos").transform.position;
 
 			// Gate-1 Camera
-			// gatecam.transform.LookAt(GameObject.Find("camera-pos").transform.position);
+
+			//gatecam.transform.position = GameObject.Find("Gate1Cam").transform.position;
+			gatecam.transform.LookAt(GameObject.Find("camera-pos").transform.position);
 
 			// Top Down View
 			topdowncamera.transform.position = new Vector3(GameObject.Find("camera-pos").transform.position.x,GameObject.Find("camera-pos").transform.position.y + 400, GameObject.Find("camera-pos").transform.position.z);
@@ -319,19 +324,35 @@ public class Ship : MonoBehaviour {
             	 currentCameraIndex = 0;
             }
 
-            ChangeView();
+            ChangeView(0);
 
     	}
+
+
+		if(Input.GetKeyDown("f"))
+  		{
+
+            ChangeView(1);
+
+    	}    	
     }
 	
     // C a m e r a
 
-	void ChangeView()
+	void ChangeView(int viewtype)
 	{
 
 	    currentCamera.enabled = false;
 
-	    currentCamera = cameras[currentCameraIndex];
+	    if(viewtype == 0)
+	    {
+			currentCamera = cameras[currentCameraIndex];
+	    }
+	    else
+	    {
+    		currentCamera = gatecam;
+	    }
+	    
 
 	    currentCamera.enabled = true;
 
