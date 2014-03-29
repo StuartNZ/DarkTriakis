@@ -1,9 +1,10 @@
 using UnityEngine;
 using System.Collections;
 
+// Fluid Racer v0.8a
+
 public class Ship : MonoBehaviour
 {
-
     public float hoverHeight = 3F;
     public float hoverHeightStrictness = 3F;
     public float forwardThrust = 55000F;
@@ -32,24 +33,19 @@ public class Ship : MonoBehaviour
     public bool playerControl = true;
 
     // ** C A M E R A 
-
     public bool setCameraOn = true;
 
     public bool setCameraMove = true;
     public bool setCameraFollow = true;
-
-
+	
     //Terrain
-
     public float terrainDistance = 0.0F;
     public float upwardSpeed = 0.0F;
 
     Vector3 dive_rotation_z = new Vector3();
-
     float bank = 0F;
 
-    // Terrain Rotation
-
+    // Terrain
     public Vector3 fHit, bHit;
     RaycastHit hit;
 
@@ -57,28 +53,21 @@ public class Ship : MonoBehaviour
     RaycastHit diff;
 
     public bool terrainAngle = false;
-
     public bool isAccellerating = false;
-
     public float distance1;
 
-    // Cameras
-
+    // Camerad
 	public Camera pilotcam, wipeoutcamera, topdowncamera, gatecam;
 
     //private Camera[] cameras;
     public int currentCamView = 1;
 
-    private int currentCameraIndex = 0;
-
     private Camera currentCamera;
-
 
     // Gates
     public bool passgate1 = false;
     public bool passgate2 = false;
-
-
+	
     //////////////////////////////////
     ///
     /// Set Player Control
@@ -92,7 +81,6 @@ public class Ship : MonoBehaviour
     {
         rigidbody.mass = mass;
         currentCamera = pilotcam;
-		//Camera.main.enabled = false;
 
         pilotcam.farClipPlane = 4200;
         wipeoutcamera.farClipPlane = 4200;
@@ -104,6 +92,8 @@ public class Ship : MonoBehaviour
 		topdowncamera.depth = Camera.main.depth + 1;
 		gatecam.depth = Camera.main.depth + 1;
 
+		pilotcam.fieldOfView = 90;
+		wipeoutcamera.fieldOfView = 90;
 
 		pilotcam.enabled = true;
 		wipeoutcamera.enabled = true;
@@ -191,7 +181,6 @@ public class Ship : MonoBehaviour
             //  Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(22,rotation.y + 90, 0));
 
             // Camera Position : Type B - Chase Cam v1.0!
-
             wipeoutcamera.transform.position = GameObject.Find("camera-pos").transform.position;
 
             //  v0.1 - First Working Version 1.1 Set Position
@@ -201,20 +190,13 @@ public class Ship : MonoBehaviour
             wipeoutcamera.transform.rotation = Quaternion.Euler(new Vector3(GameObject.Find("camera-pos").transform.rotation.x, rotation.y + 90, transform.rotation.z * rotation.z));
 
             GameObject.Find("camera-pos").renderer.enabled = false;
-            //  GameObject.Find("camera-pos-2").renderer.enabled = false;
-            //  setCameraOn = false;
-
-            //maincamera.transform.position = GameObject.Find("camera-pos").transform.position;
 
             // Gate-1 Camera
-
             //gatecam.transform.position = GameObject.Find("Gate1Cam").transform.position;
             gatecam.transform.LookAt(GameObject.Find("camera-pos").transform.position);
 
             // Top Down View
             topdowncamera.transform.position = new Vector3(GameObject.Find("camera-pos").transform.position.x, GameObject.Find("camera-pos").transform.position.y + 400, GameObject.Find("camera-pos").transform.position.z);
-
-
         }
     }
 
@@ -270,8 +252,6 @@ public class Ship : MonoBehaviour
                 thrustGlowOn = !thrustGlowOn;
                 BroadcastMessage("SetThrustGlow", thrustGlowOn, SendMessageOptions.DontRequireReceiver);
             }
-
-
         }
 
         //  S O U N D 
@@ -306,7 +286,6 @@ public class Ship : MonoBehaviour
         rigidbody.AddRelativeForce(forwardDirection * theThrust * Time.deltaTime);
 
         //  L I G H T
-
         float phi = Time.time / duration * 2 * Mathf.PI;
         float amplitude = Mathf.Cos(phi) * 0.5F + 0.5F;
 
@@ -325,7 +304,6 @@ public class Ship : MonoBehaviour
         }
 
 		// Cameras specific key
-
         if (Input.GetKeyDown ("1")) {
 				ChangeView (1);
 		} else  if (Input.GetKeyDown ("2")) {
@@ -400,18 +378,13 @@ public class Ship : MonoBehaviour
 		Debug.Log("cam : " + currentCamera.name.ToString());
 
         currentCamera.enabled = true;
-
     }
 
     // G U I 
-
     void OnGUI()
     {
-
-
         GUI.Button(new Rect(10, 10, 180, 20), "[v] "
             + rigidbody.velocity.magnitude.ToString("0.00"));
-        //	+ "[t] " +turn.ToString("000.0");// + Camera.mainCamera.transform.rotation.y.ToString());
 
         GUI.Button(new Rect(10, 35, 180, 20), "[cr] "
             + wipeoutcamera.transform.rotation.ToString());
@@ -426,7 +399,6 @@ public class Ship : MonoBehaviour
         GUI.Button(new Rect(10, 75, 180, 20), "[t] "
             + forwardThrust.ToString());
 
-
         GUI.Button(new Rect(10, 135, 180, 20), "[cp] "
         + wipeoutcamera.transform.position.ToString());
 
@@ -435,12 +407,6 @@ public class Ship : MonoBehaviour
 
         GUI.Button(new Rect(24, 305, 180, 20), "[turn] "
         + turnSpeed.ToString());
-
-        // turn speed
-        //bankSpeed = GUI.HorizontalSlider (new Rect (225, 345, 100, 30), bankSpeed, 0.2f, 55f);
-
-        //	GUI.Button(new Rect(224, 355, 150, 20), "[bank] " 
-        //	+ bankSpeed.ToString());
 
         // bankAmount
         bankSpeed = GUI.HorizontalSlider(new Rect(25, 345, 100, 30), bankSpeed, 0.0f, 3f);
@@ -456,18 +422,10 @@ public class Ship : MonoBehaviour
         GUI.Button(new Rect(405, 10, 180, 20), "[bHit] " + bHit.ToString());
 
         GUI.Button(new Rect(655, 10, 180, 20), "[v-ax] " + Input.GetAxis("Vertical").ToString());
-
-
+	
         GUI.Button(new Rect(855, 10, 180, 20), "[terrd] " + terrainDistance.ToString());
-
-        //GUI.Button(new Rect(1155, 10, 180, 20), "[upw] " + forwardHit.point.ToString() + " - " + backwardHit.point.ToString());
-        // Adjust to terrain angle
-        //GUI.Button(new Rect(1155, 10, 180, 20), "[upw] " + diff.point.ToString());
-
         GUI.Button(new Rect(1155, 10, 180, 20), "[fhp] " + forwardHit.point.ToString());
         GUI.Button(new Rect(1155, 30, 180, 20), "[bhp] " + backwardHit.point.ToString());
-
-
 
         // GUI.Button(new Rect(110, 110, 180, 20), "[z-R] " + rotation.z.ToString("0.00"));
         GUI.Button(new Rect(1355, 10, 180, 20), "[tz] " + terrainAngle.ToString());
@@ -486,6 +444,5 @@ public class Ship : MonoBehaviour
         GUI.Button(new Rect(1355, 140, 180, 20), "[cc]" + currentCamera.name.ToString());
 
         Debug.DrawRay(forwardHit.point, new Vector3(111, 111, 111));
-
     }
 }
