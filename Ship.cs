@@ -77,6 +77,9 @@ public class Ship : MonoBehaviour
 
 	public AudioClip checkpointsound;
 
+	public float[] gateTimes;
+	public float totalLapTime;
+
     /// Set Player Control
 
     void SetPlayerControl(bool control)
@@ -104,6 +107,8 @@ public class Ship : MonoBehaviour
 
 		pilotcam.enabled = true;
 		wipeoutcamera.enabled = true;
+
+		gateTimes = new float[20];
 
         ChangeView(1);
     }
@@ -309,9 +314,18 @@ public class Ship : MonoBehaviour
 	// G A T E S
 	void GateController()
 	{
+		gateTimes[nextGate] += Time.deltaTime;
+
+
 		if (nextGate == 19) 
 		{
 			nextGate = 1;
+
+			for(int a=1; a<19; a++)
+			{
+				totalLapTime += gateTimes[a];
+				gateTimes[a] = 0;
+			}
 		}
 		
 		// Distance to next gate
@@ -332,15 +346,19 @@ public class Ship : MonoBehaviour
 			if(gatecam.transform.position.y > 290)
 				gatecam.transform.position += new Vector3(0,-0.2F,0);
 		}
-		
+
 		if (distance1 < 239)
 		{
 			audio.PlayOneShot(checkpointsound);
-			passgate1 = true;
+
+			//currentSectionTime = 0;;
+
 			nextGate++;
+
 		}
 	}
 
+	// Cameras
 	void CameraController()
 	{
 		// Cameras specific key
@@ -385,11 +403,7 @@ public class Ship : MonoBehaviour
 			// rigidbody.position.y += new Vector3(0,0.2F,0);
 		}
 	}
-
-
-
-    // C a m e r a
-
+	
     void ChangeView(int cameraId)
     {
 
@@ -427,7 +441,7 @@ public class Ship : MonoBehaviour
         currentCamera.enabled = true;
     }
 
-    // G U I 
+    // Gui
     void OnGUI()
     {
         GUI.Button(new Rect(10, 10, 180, 20), "[v] "
@@ -492,7 +506,14 @@ public class Ship : MonoBehaviour
 
 		GUI.Button(new Rect(1355, 160, 180, 20), "[ng] " + nextGate.ToString());
 
-		GUI.Button(new Rect(1355, 180, 180, 20), "[time] " + Time.deltaTime.ToString());
+		/*
+		for (int a=1; a<19; a++) 
+		{
+			// GUI.Button(new Rect(1355, 180 + (a*20), 180, 20), "[g-" + a.ToString() + "] " + gateTimes[a].ToString("0.00"));
+		}
+		*/
+		GUI.Button(new Rect(1355, 180, 180, 20), "[g-" + nextGate.ToString() + "] " + gateTimes[nextGate].ToString("0.00"));
+		GUI.Button(new Rect(1355, 200, 180, 20), "[total] " + totalLapTime.ToString("0.00"));
 
         Debug.DrawRay(forwardHit.point, new Vector3(111, 111, 111));
     }
