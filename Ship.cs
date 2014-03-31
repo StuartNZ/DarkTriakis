@@ -82,7 +82,7 @@ public class Ship : MonoBehaviour
 
 	public SaveSettings2 saveSettings;
 
-	float recordLapTime = 0;
+	public float recordLapTime = 60.33f;
 
     /// Set Player Control
     void SetPlayerControl(bool control)
@@ -114,8 +114,13 @@ public class Ship : MonoBehaviour
 		gateTimes = new float[20];
 
 		saveSettings = new SaveSettings2 ();
-		saveSettings.LoadData ();
 
+		//if (saveSettings.LoadData() != null)
+		//{
+		//	recordLapTime = saveSettings.LoadData ();
+		//} 
+
+		recordLapTime = 90.33f;
 
         ChangeView(1);
     }
@@ -328,6 +333,9 @@ public class Ship : MonoBehaviour
 		{
 			nextGate = 1;
 
+			// reset laptime calculator
+			totalLapTime = 0;
+
 			for(int a=1; a<19; a++)
 			{
 				totalLapTime += gateTimes[a];
@@ -336,10 +344,13 @@ public class Ship : MonoBehaviour
 
 			if(saveSettings.GetData() != 0)
 			{
-				if(totalLapTime < saveSettings.GetData())
+				if(totalLapTime < recordLapTime && totalLapTime != 0)
 				{
 					// New Record
-					saveSettings.SaveData(totalLapTime);
+					recordLapTime = totalLapTime;
+
+					// Save New Time
+					saveSettings.SaveData(recordLapTime);
 				}
 			}
 			//totalLapTime = 0;
@@ -546,7 +557,7 @@ public class Ship : MonoBehaviour
 		GUI.Button(new Rect(1355, 550, 180, 60),totalLapTime.ToString("0.00"),customButton);
 
 		// Record
-		GUI.Button(new Rect(1355, 640, 180, 60),saveSettings.GetData().ToString("0.00"),customButton);
+		GUI.Button(new Rect(1355, 640, 180, 60),recordLapTime.ToString("0.00"),customButton);
 
 		// Draw Rays Todo
         Debug.DrawRay(forwardHit.point, new Vector3(111, 111, 111));
