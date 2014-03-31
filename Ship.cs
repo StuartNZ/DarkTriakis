@@ -35,20 +35,19 @@ public class Ship : MonoBehaviour
 
     public bool playerControl = true;
 
-    // ** C A M E R A 
+    // cameras
     public bool setCameraOn = true;
 
     public bool setCameraMove = true;
     public bool setCameraFollow = true;
 	
-    //Terrain
+    // terrain
     public float terrainDistance = 0.0F;
     public float upwardSpeed = 0.0F;
 
     Vector3 dive_rotation_z = new Vector3();
     float bank = 0F;
 
-    // Terrain
     public Vector3 fHit, bHit;
     RaycastHit hit;
 
