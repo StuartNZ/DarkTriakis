@@ -77,10 +77,14 @@ public class Ship : MonoBehaviour
 	public AudioClip checkpointsound;
 
 	public float[] gateTimes;
-	public float totalLapTime;
+	public float totalLapTime = 0;
+	public float currentLapTime = 0;
+
+	public SaveSettings2 saveSettings;
+
+	float recordLapTime = 0;
 
     /// Set Player Control
-
     void SetPlayerControl(bool control)
     {
         playerControl = control;
@@ -108,6 +112,10 @@ public class Ship : MonoBehaviour
 		wipeoutcamera.enabled = true;
 
 		gateTimes = new float[20];
+
+		saveSettings = new SaveSettings2 ();
+		saveSettings.LoadData ();
+
 
         ChangeView(1);
     }
@@ -147,8 +155,7 @@ public class Ship : MonoBehaviour
         // Z-Rotation 
         rotation.z = 0F;
 
-        // T E R R A I N 
-
+        // terrain
         RaycastHit fHit, bHit, ghit, hit3;
 
         //Ray downRay = new Ray(transform.position, - Vector3.up);
@@ -270,7 +277,7 @@ public class Ship : MonoBehaviour
 		CameraController ();
     }
 
-	// L I G H T S
+	// lights
 	void LightController()
 	{
 		//  Lights on Craft
@@ -285,7 +292,7 @@ public class Ship : MonoBehaviour
 
 	}
 
-	//  S O U N D 
+	// sound
 	void SoundController()
 	{
 		if (Input.GetKey("up") || Input.GetKey("w"))
@@ -310,12 +317,13 @@ public class Ship : MonoBehaviour
 		}
 	}
 
-	// G A T E S
+	// gates
 	void GateController()
 	{
 		gateTimes[nextGate] += Time.deltaTime;
+		currentLapTime += Time.deltaTime;
 
-
+		// Check Lap Complete
 		if (nextGate == 19) 
 		{
 			nextGate = 1;
@@ -325,6 +333,17 @@ public class Ship : MonoBehaviour
 				totalLapTime += gateTimes[a];
 				gateTimes[a] = 0;
 			}
+
+			if(saveSettings.GetData() != 0)
+			{
+				if(totalLapTime < saveSettings.GetData())
+				{
+					// New Record
+					saveSettings.SaveData(totalLapTime);
+				}
+			}
+			//totalLapTime = 0;
+			currentLapTime = 0;
 		}
 		
 		// Distance to next gate
@@ -511,9 +530,25 @@ public class Ship : MonoBehaviour
 			// GUI.Button(new Rect(1355, 180 + (a*20), 180, 20), "[g-" + a.ToString() + "] " + gateTimes[a].ToString("0.00"));
 		}
 		*/
-		GUI.Button(new Rect(1355, 180, 180, 20), "[g-" + nextGate.ToString() + "] " + gateTimes[nextGate].ToString("0.00"));
-		GUI.Button(new Rect(1355, 200, 180, 20), "[total] " + totalLapTime.ToString("0.00"));
 
+		GUI.Button(new Rect(1355, 350, 180, 20), "[g-" + nextGate.ToString() + "] " + gateTimes[nextGate].ToString("0.00"));
+		GUI.Button(new Rect(1355, 400, 180, 20), "[total] " + totalLapTime.ToString("0.00"));
+
+		// Large Player Data
+		GUIStyle customButton = new GUIStyle("button");
+		customButton.fontSize = 44;
+		GUIContent content = new GUIContent ("megaCorp");
+
+		// Current and Session Best
+		//GUI.Button(new Rect(1355, 440, 180, 60),"" + nextGate.ToString() + "| " + gateTimes[nextGate].ToString("0.00"),customButton);
+		GUI.Button(new Rect(1355, 440, 180, 60),"" + nextGate.ToString() + "| " + currentLapTime.ToString("0.00"),customButton);
+
+		GUI.Button(new Rect(1355, 550, 180, 60),totalLapTime.ToString("0.00"),customButton);
+
+		// Record
+		GUI.Button(new Rect(1355, 640, 180, 60),saveSettings.GetData().ToString("0.00"),customButton);
+
+		// Draw Rays Todo
         Debug.DrawRay(forwardHit.point, new Vector3(111, 111, 111));
     }
 }
