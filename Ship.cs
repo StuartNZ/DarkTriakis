@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-// Fluid Racer v0.9.3
+// Fluid Racer v0.9.2 
 // Unity 3D v4.3
 // stuartnz.github.io
 
@@ -82,7 +82,7 @@ public class Ship : MonoBehaviour
 
 	public SaveSettings2 saveSettings;
 
-	public float recordLapTime = 60.33f;
+	public float recordLapTime;
 
     /// Set Player Control
     void SetPlayerControl(bool control)
@@ -120,7 +120,8 @@ public class Ship : MonoBehaviour
 		//	recordLapTime = saveSettings.LoadData ();
 		//} 
 
-		recordLapTime = 90.33f;
+		// Set a default record
+		recordLapTime = 54.67f; 
 
         ChangeView(1);
     }
@@ -333,6 +334,15 @@ public class Ship : MonoBehaviour
 		{
 			nextGate = 1;
 
+			if(currentLapTime < recordLapTime)
+			{
+				// New Record
+				recordLapTime = currentLapTime;
+				
+				// Save New Time
+				saveSettings.SaveData(recordLapTime);
+			}
+
 			// reset laptime calculator
 			totalLapTime = 0;
 
@@ -342,33 +352,21 @@ public class Ship : MonoBehaviour
 				gateTimes[a] = 0;
 			}
 
-			if(saveSettings.GetData() != 0)
-			{
-				if(totalLapTime < recordLapTime && totalLapTime != 0)
-				{
-					// New Record
-					recordLapTime = totalLapTime;
-
-					// Save New Time
-					saveSettings.SaveData(recordLapTime);
-				}
-			}
-			//totalLapTime = 0;
+			// Reset Current LapTime
 			currentLapTime = 0;
 		}
 		
 		// Distance to next gate
-		//var go = GameObject.Find("gate1marker");
 		var go = GameObject.Find("g" + nextGate.ToString());
-		
-		
+
 		distance1 = Vector3.Distance(go.transform.position, transform.position);
 		
 		lastdistance = distance1;
-		
+
+		// Start Camera Panning Down..
 		if (distance1 < 2302) 
 		{
-			// Cool! Use for attract mode? Pan back on Z-Axis
+			// Attract-Modo Todo..Pan across as boosing out?
 			//gatecam.transform.position += new Vector3(0,0, 2f);
 			
 			// Lower Camera for Gate-1 Attract Fly-by
@@ -376,14 +374,12 @@ public class Ship : MonoBehaviour
 				gatecam.transform.position += new Vector3(0,-0.2F,0);
 		}
 
+		// Next-Gate
+		// Maybe lower this and have the player have to be central to the gates?
 		if (distance1 < 239)
 		{
 			audio.PlayOneShot(checkpointsound);
-
-			//currentSectionTime = 0;;
-
 			nextGate++;
-
 		}
 	}
 
