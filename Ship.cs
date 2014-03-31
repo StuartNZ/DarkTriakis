@@ -1,7 +1,10 @@
 using UnityEngine;
 using System.Collections;
 
-// Fluid Racer v0.8a
+// Fluid Racer v0.9.2 
+// Unity 3D v4.3
+// stuartnz.github.io
+
 
 public class Ship : MonoBehaviour
 {
@@ -54,9 +57,9 @@ public class Ship : MonoBehaviour
 
     public bool terrainAngle = false;
     public bool isAccellerating = false;
-    public float distance1;
+    public float distance1, lastdistance;
 
-    // Camerad
+    // Camera
 	public Camera pilotcam, wipeoutcamera, topdowncamera, gatecam;
 
     //private Camera[] cameras;
@@ -67,9 +70,13 @@ public class Ship : MonoBehaviour
     // Gates
     public bool passgate1 = false;
     public bool passgate2 = false;
-	
-    //////////////////////////////////
-    ///
+
+	public AudioClip musictrack;
+
+	public int nextGate = 1;
+
+	public AudioClip checkpointsound;
+
     /// Set Player Control
 
     void SetPlayerControl(bool control)
@@ -136,9 +143,7 @@ public class Ship : MonoBehaviour
         // Z-Rotation 
         rotation.z = 0F;
 
-        // *************
         // T E R R A I N 
-        // *************
 
         RaycastHit fHit, bHit, ghit, hit3;
 
@@ -157,7 +162,6 @@ public class Ship : MonoBehaviour
                 {
                     terrainAngle = true;
                     //rotation.z += diff.point.y / 2;
-
                 }
                 else
                 {
@@ -167,38 +171,38 @@ public class Ship : MonoBehaviour
             }
         }
 
-        // rotation.z = dive_rotation_z.z;	S
+        // rotation.z = dive_rotation_z.z;	
         rotation += bankAxis * bank;
         //rotation.z += diff.point.y;
         rotation *= Mathf.Rad2Deg;
 
         transform.rotation = Quaternion.Euler(rotation);
 
-        if (setCameraOn)
-        {
-            //Camera Position : Type A
-            //  Camera.mainCamera.transform.position = new Vector3(rigidbody.position.x - 20f, rigidbody.position.y + 10 ,rigidbody.position.z);
-            //  Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(22,rotation.y + 90, 0));
-
-            // Camera Position : Type B - Chase Cam v1.0!
-            wipeoutcamera.transform.position = GameObject.Find("camera-pos").transform.position;
-
-            //  v0.1 - First Working Version 1.1 Set Position
-            //  Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(22 ,rotation.y + 90, 0));
-
-            // v0.2 - Follow object set behind as child for camera position
-            wipeoutcamera.transform.rotation = Quaternion.Euler(new Vector3(GameObject.Find("camera-pos").transform.rotation.x, rotation.y + 90, transform.rotation.z * rotation.z));
-
-            GameObject.Find("camera-pos").renderer.enabled = false;
-
-            // Gate-1 Camera
-            //gatecam.transform.position = GameObject.Find("Gate1Cam").transform.position;
-            gatecam.transform.LookAt(GameObject.Find("camera-pos").transform.position);
-
-            // Top Down View
-            topdowncamera.transform.position = new Vector3(GameObject.Find("camera-pos").transform.position.x, GameObject.Find("camera-pos").transform.position.y + 400, GameObject.Find("camera-pos").transform.position.z);
-        }
+		if (setCameraOn)
+		{
+			// Camera Position : Type B - Chase Cam
+			wipeoutcamera.transform.position = GameObject.Find("camera-pos").transform.position;
+			
+			//  v0.1 - First Working Version 1.1 Set Position
+			//  Camera.mainCamera.transform.rotation = Quaternion.Euler(new Vector3(22 ,rotation.y + 90, 0));
+			
+			// v0.2 - Follow object set behind as child for camera position
+			wipeoutcamera.transform.rotation = Quaternion.Euler(new Vector3(GameObject.Find("camera-pos").transform.rotation.x, rotation.y + 90, transform.rotation.z * rotation.z));
+			
+			GameObject.Find("camera-pos").renderer.enabled = false;
+			
+			// Gate-1 Camera
+			gatecam.transform.LookAt(GameObject.Find("camera-pos").transform.position);
+			
+			// Top Down View
+			topdowncamera.transform.position = new Vector3(GameObject.Find("camera-pos").transform.position.x, GameObject.Find("camera-pos").transform.position.y + 400, GameObject.Find("camera-pos").transform.position.z);
+		}
     }
+
+	void SetCameraPositions()
+	{
+	
+	}
 
     void LateUpdate()
     {
@@ -222,6 +226,7 @@ public class Ship : MonoBehaviour
     public float duration = 1.0F;
 
     public AudioClip thrustsound;
+
 
     public bool goingUp = false;
 
@@ -254,58 +259,98 @@ public class Ship : MonoBehaviour
             }
         }
 
-        //  S O U N D 
-
-        if (Input.GetKey("up") || Input.GetKey("w"))
-        {
-            isAccellerating = true;
-            audio.volume = 1;
-
-            if (!audio.isPlaying)
-            {
-                audio.loop = true;
-
-                audio.Play();
-            }
-        }
-        else
-        {
-            isAccellerating = false;
-            //audio.Stop();
-
-            //audio.volume -= 5;
-
-            if (audio.volume > 0.01)
-            {
-
-                audio.volume -= 0.02f;
-            }
-        }
-
         rigidbody.AddRelativeTorque(Vector3.up * turn * Time.deltaTime);
         rigidbody.AddRelativeForce(forwardDirection * theThrust * Time.deltaTime);
 
-        //  L I G H T
-        float phi = Time.time / duration * 2 * Mathf.PI;
-        float amplitude = Mathf.Cos(phi) * 0.5F + 0.5F;
+		SoundController ();
 
-        GameObject.Find("beacon1").light.intensity = amplitude;
-        GameObject.Find("beacon2").light.intensity = amplitude;
+		LightController ();
 
-        GameObject.Find("backEngine-Light").light.intensity = rigidbody.velocity.magnitude / 8;
+		GateController ();
 
-        // Dist
-        var go = GameObject.Find("gate1marker");
-        distance1 = Vector3.Distance(go.transform.position, transform.position);
+		PoistionCameras ();
+    }
 
-        if (distance1 < 39)
-        {
-            passgate1 = true;
-        }
+	// L I G H T S
+	void LightController()
+	{
+		//  Lights on Craft
+		float phi = Time.time / duration * 2 * Mathf.PI;
+		float amplitude = Mathf.Cos(phi) * 0.5F + 0.5F;
 
+		// Lights on starting beacon
+		GameObject.Find("beacon1").light.intensity = amplitude;
+		GameObject.Find("beacon2").light.intensity = amplitude;
+		
+		GameObject.Find("backEngine-Light").light.intensity = rigidbody.velocity.magnitude / 8;
+
+	}
+
+	//  S O U N D 
+	void SoundController()
+	{
+		if (Input.GetKey("up") || Input.GetKey("w"))
+		{
+			isAccellerating = true;
+			audio.volume = 1;
+			
+			if (!audio.isPlaying)
+			{
+				audio.loop = true;
+				audio.Play();
+			}
+		}
+		else
+		{
+			isAccellerating = false;
+			
+			if (audio.volume > 0.01)
+			{
+				audio.volume -= 0.02f;
+			}
+		}
+	}
+
+	// G A T E S
+	void GateController()
+	{
+		if (nextGate == 19) 
+		{
+			nextGate = 1;
+		}
+		
+		// Distance to next gate
+		//var go = GameObject.Find("gate1marker");
+		var go = GameObject.Find("g" + nextGate.ToString());
+		
+		
+		distance1 = Vector3.Distance(go.transform.position, transform.position);
+		
+		lastdistance = distance1;
+		
+		if (distance1 < 2302) 
+		{
+			// Cool! Use for attract mode? Pan back on Z-Axis
+			//gatecam.transform.position += new Vector3(0,0, 2f);
+			
+			// Lower Camera for Gate-1 Attract Fly-by
+			if(gatecam.transform.position.y > 290)
+				gatecam.transform.position += new Vector3(0,-0.2F,0);
+		}
+		
+		if (distance1 < 239)
+		{
+			audio.PlayOneShot(checkpointsound);
+			passgate1 = true;
+			nextGate++;
+		}
+	}
+
+	void PoistionCameras()
+	{
 		// Cameras specific key
-        if (Input.GetKeyDown ("1")) {
-				ChangeView (1);
+		if (Input.GetKeyDown ("1")) {
+			ChangeView (1);
 		} else  if (Input.GetKeyDown ("2")) {
 			ChangeView (2);
 		} else  if (Input.GetKeyDown ("3")) {
@@ -313,8 +358,8 @@ public class Ship : MonoBehaviour
 		} else  if (Input.GetKeyDown ("4")) {
 			ChangeView (4);
 		}
-
-		// Camera Cycle
+		
+		// Camera Toggle - Pilot-Cam and WipEout-Cam
 		if (Input.GetKeyDown ("e")) {
 			if(currentCamView == 1)
 			{
@@ -324,10 +369,10 @@ public class Ship : MonoBehaviour
 			{
 				currentCamView = 1;
 			}
-
+			
 			ChangeView(currentCamView);
 		}
-
+		
 		// Camera Cycle
 		if (Input.GetKeyDown ("r")) {
 			currentCamView++;
@@ -336,10 +381,17 @@ public class Ship : MonoBehaviour
 			{
 				currentCamView = 1;
 			}
-
+			
 			ChangeView(currentCamView);
 		}
-    }
+		
+		// Camera Cycle
+		if (Input.GetKeyDown ("space")) {
+			// rigidbody.position.y += new Vector3(0,0.2F,0);
+		}
+	}
+
+
 
     // C a m e r a
 
@@ -396,7 +448,7 @@ public class Ship : MonoBehaviour
 
         forwardThrust = GUI.HorizontalSlider(new Rect(25, 95, 100, 30), forwardThrust, 25000f, 100000.0f);
 
-        GUI.Button(new Rect(10, 75, 180, 20), "[t] "
+        GUI.Button(new Rect(10, 75, 180, 20), "[thrust] "
             + forwardThrust.ToString());
 
         GUI.Button(new Rect(10, 135, 180, 20), "[cp] "
@@ -442,6 +494,10 @@ public class Ship : MonoBehaviour
 
         GUI.Button(new Rect(1355, 120, 180, 20), "[pg2] " + passgate2.ToString());
         GUI.Button(new Rect(1355, 140, 180, 20), "[cc]" + currentCamera.name.ToString());
+
+		GUI.Button(new Rect(1355, 160, 180, 20), "[ng] " + nextGate.ToString());
+
+		GUI.Button(new Rect(1355, 180, 180, 20), "[time] " + Time.deltaTime.ToString());
 
         Debug.DrawRay(forwardHit.point, new Vector3(111, 111, 111));
     }
