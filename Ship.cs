@@ -199,11 +199,6 @@ public class Ship : MonoBehaviour
 		}
     }
 
-	void SetCameraPositions()
-	{
-	
-	}
-
     void LateUpdate()
     {
 
@@ -268,7 +263,7 @@ public class Ship : MonoBehaviour
 
 		GateController ();
 
-		PoistionCameras ();
+		CameraController ();
     }
 
 	// L I G H T S
@@ -346,7 +341,7 @@ public class Ship : MonoBehaviour
 		}
 	}
 
-	void PoistionCameras()
+	void CameraController()
 	{
 		// Cameras specific key
 		if (Input.GetKeyDown ("1")) {
