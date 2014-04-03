@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-// Fluid Racer v0.9.6a
+// Fluid Racer v0.9.7
 // Unity 3D v4.3
 // stuartnz.github.io
 
@@ -89,7 +89,7 @@ public class Ship : MonoBehaviour
 	public float[] lapTimes;
 
 	public float elevation = 0;
-	public float elevationLevel = 6F;
+	public float elevationLevel = 66F;
 
     /// Set Player Control
     void SetPlayerControl(bool control)
@@ -595,9 +595,9 @@ public class Ship : MonoBehaviour
         GUI.Button(new Rect(1155, 60, 180, 20), "[d1] " + distance1.ToString());
 		GUI.Button(new Rect(1155, 80, 180, 20), "[lap] " + currentLap.ToString() + " of 3 - TT [" + totalThreeLapTTtime.ToString("0.00")+ "]");
 
-		GUI.Button(new Rect(1155, 100, 180, 20), "[lap1] " + lapTimes[1].ToString() + "0.00");
-		GUI.Button(new Rect(1155, 120, 180, 20), "[lap2] " + lapTimes[2].ToString() + "0.00");
-		GUI.Button(new Rect(1155, 140, 180, 20), "[lap3] " + lapTimes[3].ToString() + "0.00");
+		GUI.Button(new Rect(1155, 100, 180, 20), "[lap1] " + lapTimes[1].ToString("0.00"));
+		GUI.Button(new Rect(1155, 120, 180, 20), "[lap2] " + lapTimes[2].ToString("0.00"));
+		GUI.Button(new Rect(1155, 140, 180, 20), "[lap3] " + lapTimes[3].ToString("0.00"));
 
         //5. Cameras
         GUI.Button(new Rect(1355, 80, 180, 20), "[cam] " + currentCamView.ToString());
@@ -636,5 +636,7 @@ public class Ship : MonoBehaviour
 		// Record
 		GUI.Button(new Rect(1355, 640, 180, 60),recordLapTime.ToString("0.00"),customButton);
 
+		// Draw Rays Todo
+        Debug.DrawRay(forwardHit.point, new Vector3(111, 111, 111));
     }
 }
