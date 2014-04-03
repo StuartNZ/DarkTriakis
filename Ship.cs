@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-// Fluid Racer v0.9.4
+// Fluid Racer v0.9.6a
 // Unity 3D v4.3
 // stuartnz.github.io
 
@@ -84,6 +84,13 @@ public class Ship : MonoBehaviour
 
 	public float recordLapTime;
 
+	public int currentLap = 1;
+	public float totalThreeLapTTtime = 0;
+	public float[] lapTimes;
+
+	public float elevation = 0;
+	public float elevationLevel = 6F;
+
     /// Set Player Control
     void SetPlayerControl(bool control)
     {
@@ -112,6 +119,7 @@ public class Ship : MonoBehaviour
 		wipeoutcamera.enabled = true;
 
 		gateTimes = new float[20];
+		lapTimes = new float[4];
 
 		saveSettings = new SaveSettings2 ();
 
@@ -122,6 +130,8 @@ public class Ship : MonoBehaviour
 
 		// Set a default record
 		recordLapTime = 54.67f; 
+
+		elevation = 0;
 
         ChangeView(1);
     }
@@ -148,7 +158,7 @@ public class Ship : MonoBehaviour
         else
             rigidbody.angularDrag = superADrag;
 
-        transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, hoverHeight + 260 + Terrain.activeTerrain.SampleHeight(transform.position), transform.position.z), hoverHeightStrictness);
+        transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, hoverHeight + 260 + elevation + Terrain.activeTerrain.SampleHeight(transform.position), transform.position.z), hoverHeightStrictness);
 
         float amountToBank = rigidbody.angularVelocity.y * bankAmount;
 
@@ -274,14 +284,24 @@ public class Ship : MonoBehaviour
         rigidbody.AddRelativeTorque(Vector3.up * turn * Time.deltaTime);
         rigidbody.AddRelativeForce(forwardDirection * theThrust * Time.deltaTime);
 
-		SoundController ();
-
 		LightController ();
+
+		SoundController ();
 
 		GateController ();
 
 		CameraController ();
+
+		PadController ();
     }
+
+	void PadController()
+	{
+		//var pad1 = GameObject.Find("Pad1");
+		
+		//pad1_dist = Vector3.Distance(pad1.transform.position, transform.position);
+	}
+
 
 	// lights
 	void LightController()
@@ -332,6 +352,18 @@ public class Ship : MonoBehaviour
 		// Check Lap Complete
 		if (nextGate == 19) 
 		{
+			lapTimes[currentLap] = currentLapTime;
+
+			currentLap++;
+
+			if(currentLap == 4)
+			{
+				// swt
+				currentLap = 1;
+				// record 3 lap time
+				totalThreeLapTTtime = lapTimes[1] + lapTimes[2] + lapTimes[3];
+			}
+
 			nextGate = 1;
 
 			if(currentLapTime < recordLapTime)
@@ -355,6 +387,11 @@ public class Ship : MonoBehaviour
 			// Reset Current LapTime
 			currentLapTime = 0;
 		}
+
+		if (nextGate == 2) {
+			forwardThrust += 10;
+		}
+
 		
 		// Distance to next gate
 		var go = GameObject.Find("g" + nextGate.ToString());
@@ -387,32 +424,37 @@ public class Ship : MonoBehaviour
 	void CameraController()
 	{
 		// Cameras specific key
-		if (Input.GetKeyDown ("1")) {
+		if (Input.GetKeyDown ("1")) 
+		{
 			ChangeView (1);
-		} else  if (Input.GetKeyDown ("2")) {
+		} 
+		else  if (Input.GetKeyDown ("2")) 
+		{
 			ChangeView (2);
-		} else  if (Input.GetKeyDown ("3")) {
+		} 
+		else  if (Input.GetKeyDown ("3")) 
+		{
 			ChangeView (3);
-		} else  if (Input.GetKeyDown ("4")) {
+		} 
+		else  if (Input.GetKeyDown ("4")) 
+		{
 			ChangeView (4);
 		}
 		
 		// Camera Toggle - Pilot-Cam and WipEout-Cam
-		if (Input.GetKeyDown ("e")) {
+		if (Input.GetKeyDown ("e")) 
+		{
 			if(currentCamView == 1)
-			{
 				currentCamView = 2;
-			}
 			else
-			{
 				currentCamView = 1;
-			}
 			
 			ChangeView(currentCamView);
 		}
 		
 		// Camera Cycle
-		if (Input.GetKeyDown ("r")) {
+		if (Input.GetKeyDown ("r")) 
+		{
 			currentCamView++;
 			
 			if(currentCamView == 5)
@@ -423,19 +465,47 @@ public class Ship : MonoBehaviour
 			ChangeView(currentCamView);
 		}
 		
-		// Camera Cycle
-		if (Input.GetKeyDown ("space")) {
-			// rigidbody.position.y += new Vector3(0,0.2F,0);
+		// Space vertical thrust
+		bool down = Input.GetKeyDown(KeyCode.Space);
+		bool held = Input.GetKey(KeyCode.Space);
+		bool up = Input.GetKeyUp(KeyCode.Space);
+		
+		if(down)
+		{
+			elevation += elevationLevel;
 		}
+		else if(held)
+		{
+			elevation += elevationLevel;
+		}
+		else if(up)
+		{
+			if(elevation > 0)
+			{
+				elevation -= elevationLevel;
+			}
+
+		}
+		else
+		{
+			if(elevation > 0)
+			{
+				elevation -= elevationLevel;
+			}
+		}
+		
+		guiText.text = " " + down + "\n " + held + "\n " + up;
+		
+		
 	}
 	
-    void ChangeView(int cameraId)
-    {
-
-        currentCamera.enabled = false;
-
-        if (cameraId == 1)
-        {
+	void ChangeView(int cameraId)
+	{
+		
+		currentCamera.enabled = false;
+		
+		if (cameraId == 1)
+		{
 			currentCamera = pilotcam;
 			currentCamView = 1;
         }
@@ -475,8 +545,7 @@ public class Ship : MonoBehaviour
         GUI.Button(new Rect(10, 35, 180, 20), "[cr] "
             + wipeoutcamera.transform.rotation.ToString());
 
-        GUI.Button(new Rect(10, 55, 180, 20), "campos:"
-    + GameObject.Find("camera-pos").transform.rotation);
+        GUI.Button(new Rect(10, 55, 180, 20), "campos:" + GameObject.Find("camera-pos").transform.rotation);
 
         // hSliderValue = GUI.HorizontalSlider (new Rect (25, 95, 100, 30), hSliderValue, 0.0f, 10.0f);
 
@@ -509,7 +578,11 @@ public class Ship : MonoBehaviour
 
         GUI.Button(new Rect(655, 10, 180, 20), "[v-ax] " + Input.GetAxis("Vertical").ToString());
 	
-        GUI.Button(new Rect(855, 10, 180, 20), "[terrd] " + terrainDistance.ToString());
+        //GUI.Button(new Rect(855, 180, 180, 20), "[terrd] " + terrainDistance.ToString());
+		GUI.Button(new Rect(855, 10, 180, 20), "[elev] " + elevation.ToString() + " | " + elevationLevel.ToString());
+
+		
+		// Hits
         GUI.Button(new Rect(1155, 10, 180, 20), "[fhp] " + forwardHit.point.ToString());
         GUI.Button(new Rect(1155, 30, 180, 20), "[bhp] " + backwardHit.point.ToString());
 
@@ -518,10 +591,15 @@ public class Ship : MonoBehaviour
 
         GUI.Button(new Rect(1355, 40, 180, 20), "[->] " + isAccellerating.ToString() + "/" + audio.volume.ToString());
 
-        // Distance
+        // 4.Distance
         GUI.Button(new Rect(1155, 60, 180, 20), "[d1] " + distance1.ToString());
+		GUI.Button(new Rect(1155, 80, 180, 20), "[lap] " + currentLap.ToString() + " of 3 - TT [" + totalThreeLapTTtime.ToString("0.00")+ "]");
 
-        //Cameras
+		GUI.Button(new Rect(1155, 100, 180, 20), "[lap1] " + lapTimes[1].ToString() + "0.00");
+		GUI.Button(new Rect(1155, 120, 180, 20), "[lap2] " + lapTimes[2].ToString() + "0.00");
+		GUI.Button(new Rect(1155, 140, 180, 20), "[lap3] " + lapTimes[3].ToString() + "0.00");
+
+        //5. Cameras
         GUI.Button(new Rect(1355, 80, 180, 20), "[cam] " + currentCamView.ToString());
 
         GUI.Button(new Rect(1355, 100, 180, 20), "[pg1] " + passgate1.ToString());
@@ -548,14 +626,15 @@ public class Ship : MonoBehaviour
 
 		// Current and Session Best
 		//GUI.Button(new Rect(1355, 440, 180, 60),"" + nextGate.ToString() + "| " + gateTimes[nextGate].ToString("0.00"),customButton);
+
+		// Show the time to next gate
 		GUI.Button(new Rect(1355, 440, 180, 60),"" + nextGate.ToString() + "| " + currentLapTime.ToString("0.00"),customButton);
+
 
 		GUI.Button(new Rect(1355, 550, 180, 60),totalLapTime.ToString("0.00"),customButton);
 
 		// Record
 		GUI.Button(new Rect(1355, 640, 180, 60),recordLapTime.ToString("0.00"),customButton);
 
-		// Draw Rays Todo
-        Debug.DrawRay(forwardHit.point, new Vector3(111, 111, 111));
     }
 }
